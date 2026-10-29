@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { getLeaderboard, refreshLeaderboardData } from "@/lib/leaderboard-aggregator";
 import { checkOrigin } from "@/lib/assert-origin";
@@ -8,7 +9,21 @@ export const dynamic = "force-dynamic";
 // GET /api/leaderboard — fetch leaderboard with optional filters/pagination
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
+const viableWallets = data.filter((wallet) => {
+  // 1. Must be active within the last 24 hours (86400 seconds)
+  const isRecentlyActive = wallet.last_active < 86400; 
 
+  // 2. Not tagged as a wash trader
+  const notWashTrader = !wallet.tags?.includes('wash_trader');
+
+  // 3. Not a massive influencer / megaphone (under 150 trackers to prevent front-running)
+  const notOvercrowded = (wallet.followers || wallet.tracking || 0) < 150;
+
+  // 4. Balanced trade execution (not just dumping presales)
+  const realisticWinRate = wallet.win_rate >= 0.55 && wallet.win_rate <= 0.85;
+
+  return isRecentlyActive && notWashTrader && notOvercrowded && realisticWinRate;
+});
   const query: LeaderboardQuery = {
     chain: (searchParams.get("chain") ?? "all") as LeaderboardChain | "all",
     timeframe: (searchParams.get("timeframe") ?? "7d") as LeaderboardQuery["timeframe"],
