@@ -1,24 +1,25 @@
+import type { Metadata } from "next";
 import { getAllWallets } from "@/lib/data";
 import UnifiedTable from "@/app/components/UnifiedTable";
 
 export const revalidate = 3600;
 
-export async function generateMetadata() {
-  return {
-    title: "All Wallets | KolQuest",
-    description:
-      "Every tracked smart money wallet in one view — KolScan KOLs, GMGN smart degens, snipers, fresh wallets, top devs, and Polymarket prediction traders across all chains.",
-  };
-}
+export const metadata: Metadata = {
+  title: "All Wallets | KolQuest",
+  description:
+    "Every tracked smart money wallet in one view — KolScan KOLs, GMGN smart degens, snipers, fresh wallets, top devs, and Polymarket prediction traders across all chains.",
+};
 
 interface PageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function AllWalletsPage({ searchParams }: PageProps) {
-  // Await searchParams to satisfy Next.js dynamic API standards
   const resolvedParams = searchParams ? await searchParams : {};
-  const chainFilter = typeof resolvedParams.chain === "string" ? resolvedParams.chain : "sol";
+  const rawChain = Array.isArray(resolvedParams.chain)
+    ? resolvedParams.chain[0]
+    : resolvedParams.chain;
+  const chainFilter: "sol" | "bsc" = rawChain === "bsc" ? "bsc" : "sol";
 
   let data: Awaited<ReturnType<typeof getAllWallets>> = [];
   let fetchError: string | null = null;
@@ -27,10 +28,10 @@ export default async function AllWalletsPage({ searchParams }: PageProps) {
     data = await getAllWallets();
   } catch (err: unknown) {
     console.error("Failed to load wallets:", err);
-    fetchError = err instanceof Error ? err.message : "Failed to load database records.";
+    fetchError =
+      err instanceof Error ? err.message : "Failed to load database records.";
   }
 
-  // Handle database query failure gracefully
   if (fetchError) {
     return (
       <main className="min-h-screen px-4 py-8 max-w-7xl mx-auto">
@@ -38,14 +39,15 @@ export default async function AllWalletsPage({ searchParams }: PageProps) {
           <h2 className="text-xl font-semibold mb-2">Error Loading Wallets</h2>
           <p className="text-sm opacity-90">{fetchError}</p>
           <p className="text-xs text-neutral-400 mt-4">
-            Ensure your Neon database connection string is properly configured and migrations have completed.
+            Run <code className="text-white">npx drizzle-kit push</code> inside
+            the <code className="text-white">site</code> folder to ensure all
+            PostgreSQL tables exist.
           </p>
         </div>
       </main>
     );
   }
 
-  // Tally counts per data source
   const sources = data.reduce<Record<string, number>>((acc, w) => {
     const src = w.source || "Unknown";
     acc[src] = (acc[src] || 0) + 1;
@@ -66,7 +68,8 @@ export default async function AllWalletsPage({ searchParams }: PageProps) {
               All Tracked Wallets
             </h1>
             <p className="text-sm text-neutral-400 mt-1">
-              {data.length.toLocaleString()} total wallets monitored across Solana and multi-chain protocols.
+              {data.length.toLocaleString()} total wallets monitored across
+              Solana and multi-chain protocols.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
@@ -85,7 +88,9 @@ export default async function AllWalletsPage({ searchParams }: PageProps) {
       <UnifiedTable
         data={data}
         title="All Wallets"
-        subtitle={sourceParts || `${data.length.toLocaleString()} wallets active`}
+        subtitle={
+          sourceParts || `${data.length.toLocaleString()} wallets active`
+        }
         showSource={true}
         showCategory={true}
         chain={chainFilter}
