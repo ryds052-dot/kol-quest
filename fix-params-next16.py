@@ -69,7 +69,7 @@ def fix_page_file(path):
 
 # Find all affected route files
 result = subprocess.run(
-    ['grep', '-rl', '{ params }: { params: {', '/workspaces/kol-quest/site/app'],
+    ['grep', '-rl', '{ params }: { params: {', 'C:/Users/ryder/Downloads/Crypto-Tools/kol-quest/site/app'],
     capture_output=True, text=True
 )
 files = [f.strip() for f in result.stdout.strip().split('\n') if f.strip()]

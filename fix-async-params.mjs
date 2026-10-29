@@ -10,7 +10,7 @@
 import fs from "fs";
 import path from "path";
 
-const API_DIR = "/workspaces/kol-quest/site/app/api";
+const API_DIR = "C:/Users/ryder/Downloads/Crypto-Tools/kol-quest/site/app/api";
 
 function findFiles(dir) {
   const results = [];
@@ -79,7 +79,7 @@ for (const file of files) {
   try {
     if (fixFile(file)) {
       fixed++;
-      fixedFiles.push(file.replace("/workspaces/kol-quest/site/", ""));
+      fixedFiles.push(file.replace("C:/Users/ryder/Downloads/Crypto-Tools/kol-quest/site/", ""));
     }
   } catch (e) {
     console.error(`Error processing ${file}:`, e.message);
