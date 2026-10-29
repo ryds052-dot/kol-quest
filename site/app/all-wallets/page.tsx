@@ -83,4 +83,13 @@ export default async function AllWalletsPage({ searchParams }: PageProps) {
       </header>
 
       <UnifiedTable
-        data={data
+        data={data}
+        title="All Wallets"
+        subtitle={sourceParts || `${data.length.toLocaleString()} wallets active`}
+        showSource={true}
+        showCategory={true}
+        chain={chainFilter}
+      />
+    </main>
+  );
+}
