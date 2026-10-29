@@ -81,4 +81,11 @@ export async function POST(req: NextRequest) {
   const originError = checkOrigin(req);
   if (originError) return originError;
 
-  const authHeader = req.headers.get("
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  await refreshLeaderboardData();
+  return NextResponse.json({ success: true, message: "Leaderboard cache refreshed." });
+}
